@@ -7,8 +7,18 @@ from torchtext import data, datasets
 import spacy
 from spacy.symbols import ORTH
 from tqdm import tqdm
+import utils
 
-DATA_BASE_PATH = '/root/nlp_data'
+USE_GPU = True
+USE_GPU_INDEX = 0
+# device choose
+if USE_GPU and torch.cuda.is_available():
+    device = torch.device('cuda:{}'.format(USE_GPU_INDEX))
+else:
+    device = torch.device('cpu')
+
+# DATA_BASE_PATH = '/root/nlp_data'
+DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
 DATA_DIR = 'language_model/ptb'
 DATA_TRAIN_FILE_NAME = 'ptb.train.txt'
 DATA_VALID_FILE_NAME = 'ptb.valid.txt'
@@ -42,15 +52,18 @@ valid_iter = data.BPTTIterator(dataset=valid_data, batch_size=BATCH_SIZE, bptt_l
 test_iter = data.BPTTIterator(dataset=test_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN)
 
 # build model
+MODEL_SAVE_BASE_PATH = '/home/ubuntu/likun/nlp-practice/language_model'
 MODEL_NAME = "PTB-RNN-KERNEL.pt"
-MODEL_SAVE_PATH = os.path.join('save_models', MODEL_NAME)
-from language_model.model import RNN
-NUM_EPOCH = 2
+MODEL_SAVE_PATH = os.path.join(MODEL_SAVE_BASE_PATH, 'save_models', MODEL_NAME)
+from model import RNN
+NUM_EPOCH = 10
 EMBEDDING_SIZE = 128
-HIDDEN_SIZE = 64
+HIDDEN_SIZE = 128
 NUM_LAYERS = 2
 LEARNING_RATE = 1e-2
 model = RNN(vocab_size=len(TEXT.vocab), hidden_size=HIDDEN_SIZE, embedding_size=EMBEDDING_SIZE, num_layers=NUM_LAYERS)
+utils.weight_init(model)
+model.to(device)
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
 
@@ -63,8 +76,9 @@ if train:
         model.train()
         for batch in tqdm(train_iter):
             optimizer.zero_grad()
-            text = batch.text
-            target = batch.target.view(-1)
+            text = batch.text.to(device)
+            target = batch.target.to(device)
+            target = target.contiguous().view(-1)
             output = model(text)
             loss = loss_function(output, target)
             train_losses.append(loss.data.tolist())
@@ -75,8 +89,9 @@ if train:
             model.eval()
             for batch in tqdm(valid_iter):
                 optimizer.zero_grad()
-                text = batch.text
-                target = batch.target.view(-1)
+                text = batch.text.to(device)
+                target = batch.target.to(device)
+                target = target.view(-1)
                 output = model(text)
                 loss = loss_function(output, target)
                 valid_losses.append(loss.data.tolist())
