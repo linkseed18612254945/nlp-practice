@@ -16,7 +16,8 @@ if USE_GPU and torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
+DATA_BASE_PATH = '../nlp_data'  # Test env data path
+# DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
 # DATA_DIR = 'text_classify/aclImdb'
 DATA_DIR = 'text_classify/car_comments'
 DATA_TRAIN_FILE_NAME = 'train.csv'
@@ -68,7 +69,7 @@ valid_iter = data.BucketIterator(dataset=valid_data, batch_size=BATCH_SIZE, sort
 test_iter = data.Iterator(dataset=test_data, batch_size=BATCH_SIZE, sort=False)
 
 # build model
-from model import RNN, WordAVGModel
+from model import RNN, WordAVGModel, TextCNN
 EMBEDDING_SIZE = 100
 HIDDEN_SIZE = 128
 NUM_LAYERS = 2
@@ -76,7 +77,8 @@ EPOCH_SIZE = 5
 LEARNING_RATE = 1e-2
 # model = RNN(input_size=len(TEXT.vocab), embedding_size=EMBEDDING_SIZE, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS,
 #             output_size=len(LABEL.vocab))
-model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=EMBEDDING_SIZE, output_dim=len(LABEL.vocab))
+model = TextCNN(input_size=len(TEXT.vocab), seq_size=1, embedding_size=EMBEDDING_SIZE, output_size=len(LABEL.vocab))
+# model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=EMBEDDING_SIZE, output_dim=len(LABEL.vocab))
 utils.weight_init(model)
 model.to(device)
 loss_function = nn.CrossEntropyLoss()
