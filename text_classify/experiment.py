@@ -16,10 +16,11 @@ if USE_GPU and torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-DATA_BASE_PATH = '../nlp_data'  # Test env data path
-# DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
+# DATA_BASE_PATH = '../nlp_data'  # Test env data path
+DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
 # DATA_DIR = 'text_classify/aclImdb'
-DATA_DIR = 'text_classify/car_comments'
+# DATA_DIR = 'text_classify/car_comments'
+DATA_DIR = 'text_classify/zh_news'
 DATA_TRAIN_FILE_NAME = 'train.csv'
 DATA_VALID_FILE_NAME = 'valid.csv'
 DATA_TEST_FILE_NAME = 'test.csv'
@@ -37,9 +38,9 @@ valid_split_from_train = False
 
 
 # build tokenizer
-nlp = spacy.load('en')
-nlp.tokenizer.add_special_case(UNK_TOKEN, [{ORTH: UNK_TOKEN}])
-nlp.tokenizer.add_special_case('<br/>', [{ORTH: '<br/>'}])
+# nlp = spacy.load('en')
+# nlp.tokenizer.add_special_case(UNK_TOKEN, [{ORTH: UNK_TOKEN}])
+# nlp.tokenizer.add_special_case('<br/>', [{ORTH: '<br/>'}])
 # def tokenizer(text):
 #     return [token.text for token in nlp.tokenizer(text)]
 def tokenizer(text):
@@ -75,10 +76,11 @@ HIDDEN_SIZE = 128
 NUM_LAYERS = 2
 EPOCH_SIZE = 5
 LEARNING_RATE = 1e-2
-# model = RNN(input_size=len(TEXT.vocab), embedding_size=EMBEDDING_SIZE, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS,
-#             output_size=len(LABEL.vocab))
-model = TextCNN(input_size=len(TEXT.vocab), seq_size=1, embedding_size=EMBEDDING_SIZE, output_size=len(LABEL.vocab))
+
+# model = RNN(input_size=len(TEXT.vocab), embedding_size=EMBEDDING_SIZE, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS, output_size=len(LABEL.vocab))
+model = TextCNN(input_size=len(TEXT.vocab), embedding_size=EMBEDDING_SIZE, output_size=len(LABEL.vocab), pooling_method='avg')
 # model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=EMBEDDING_SIZE, output_dim=len(LABEL.vocab))
+
 utils.weight_init(model)
 model.to(device)
 loss_function = nn.CrossEntropyLoss()

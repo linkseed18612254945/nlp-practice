@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@10.10.111.130:9906">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@192.168.230.128:9906">
     <serverData>
-      <paths name="mist@p100.mistgpu.xyz:24692">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
       <paths name="root@49.233.191.85:22">
         <serverdata>
           <mappings>
@@ -23,10 +16,10 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ubuntu@10.10.111.130:9906 (1)">
+      <paths name="ubuntu@192.168.230.128:9906">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_759" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

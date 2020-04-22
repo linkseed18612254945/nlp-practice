@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 class TextCNN(nn.Module):
-    def __init__(self, input_size, seq_size, embedding_size, output_size, filter_sizes=(2, 3, 4), num_filters=3, pooling_method='max'):
+    def __init__(self, input_size, embedding_size, output_size, filter_sizes=(2, 3, 4), num_filters=3, pooling_method='max'):
         super(TextCNN, self).__init__()
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
@@ -11,27 +11,28 @@ class TextCNN(nn.Module):
         self.embedding = nn.Embedding(input_size, embedding_size)
         self.convs = nn.ModuleList([nn.Conv2d(1, num_filters, kernel_size=(filter_size, embedding_size)) for filter_size in filter_sizes])
         self.activate = nn.ReLU()
-        self.poolings = nn.ModuleList([nn.MaxPool2d(kernel_size=(seq_size - filter_size + 1)) for filter_size in filter_sizes]) if pooling_method =='max'\
-            else nn.ModuleList([nn.AvgPool2d(kernel_size=(seq_size - filter_size + 1)) for filter_size in filter_sizes])
         self.linear = nn.Linear(len(filter_sizes) * num_filters, output_size)
 
     def forward(self, x):
-        x = self.embedding(x)
-        sequence_length = x.shape[1]
-        x = x.unsqueeze(dim=1)
+        embedded = self.embedding(x)
+        sequence_length = embedded.shape[1]
         conv_pooling_res = []
         for conv in self.convs:
-            conved = conv(x)
+            conved = conv(embedded.unsqueeze(dim=1))
             conved = self.activate(conved)
             if self.pooling_method == 'max':
                 pooling = nn.MaxPool2d(kernel_size=(sequence_length - conv.kernel_size[0] + 1, 1))
             else:
-                pooling = nn.AvgPool2d(kernel_size=(sequence_length - conv.kernel_size[0]  + 1, 1))
+                pooling = nn.AvgPool2d(kernel_size=(sequence_length - conv.kernel_size[0] + 1, 1))
             pooled = pooling(conved)
             conv_pooling_res.append(pooled)
 
         output = torch.cat(conv_pooling_res, dim=3)
         output = torch.reshape(output, shape=(-1, len(self.filter_sizes) * self.num_filters))
+
+        avg_embedding = F.avg_pool2d(embedded, (sequence_length, 1)).squeeze(1)
+        output = torch.cat([output, avg_embedding], dim=1)
+
         output = self.linear(output)
         return output
 
@@ -67,6 +68,7 @@ class WordAVGModel(nn.Module):
         # padding_idx：如果提供的话，输出遇到此下标时用零填充。这里如果遇到padding的单词就用0填充。
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
 
+
         # output_dim输出的维度，一个数就可以了，=1
         self.fc = nn.Linear(embedding_dim, output_dim)
 
@@ -85,8 +87,10 @@ class WordAVGModel(nn.Module):
 
         # [batch_size, embedding_dim]把单词长度的维度压扁为1，并降维
         # embedded 为input_size，(embedded.shape[1], 1)) 为kernel_size
-        # squeeze(1)表示删除索引为1的那个维度
-        pooled = F.avg_pool2d(embedded, (embedded.shape[1], 1)).squeeze(1)
+        pooling = nn.AvgPool2d(kernel_size=(embedded.shape[1], 1))
+        pooled = pooling(embedded).squeeze(1)
+        output = self.fc(pooled)
+        # pooled = F.avg_pool2d(embedded, (embedded.shape[1], 1)).squeeze(1)
 
         # (batch_size, embedding_dim)*(embedding_dim, output_dim) = (batch_size, output_dim)
-        return self.fc(pooled).squeeze(1)
+        return output
