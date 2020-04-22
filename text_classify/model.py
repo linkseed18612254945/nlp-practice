@@ -24,9 +24,9 @@ class TextCNN(nn.Module):
             conved = conv(x)
             conved = self.activate(conved)
             if self.pooling_method == 'max':
-                pooling = nn.MaxPool2d(kernel_size=(sequence_length - len(self.filter_sizes) + 1, 1))
+                pooling = nn.MaxPool2d(kernel_size=(sequence_length - conv.kernel_size[0] + 1, 1))
             else:
-                pooling = nn.AvgPool2d(kernel_size=(sequence_length - len(self.filter_sizes) + 1, 1))
+                pooling = nn.AvgPool2d(kernel_size=(sequence_length - conv.kernel_size[0]  + 1, 1))
             pooled = pooling(conved)
             conv_pooling_res.append(pooled)
 
