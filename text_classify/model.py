@@ -96,3 +96,4 @@ class WordAVGModel(nn.Module):
 
         # (batch_size, embedding_dim)*(embedding_dim, output_dim) = (batch_size, output_dim)
         return output
+
