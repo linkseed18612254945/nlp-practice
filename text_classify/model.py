@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 class TextCNN(nn.Module):
-    def __init__(self, input_size, embedding_size, output_size, filter_sizes=(2, 3, 4), num_filters=3, pooling_method='max'):
+    def __init__(self, input_size, embedding_size, output_size, filter_sizes=(1, 2, 3, 4), num_filters=3, pooling_method='max'):
         super(TextCNN, self).__init__()
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
@@ -12,6 +12,7 @@ class TextCNN(nn.Module):
         self.convs = nn.ModuleList([nn.Conv2d(1, num_filters, kernel_size=(filter_size, embedding_size)) for filter_size in filter_sizes])
         self.activate = nn.ReLU()
         self.linear = nn.Linear(len(filter_sizes) * num_filters, output_size)
+        # self.linear = nn.Linear(len(filter_sizes) * num_filters + embedding_size, output_size)
 
     def forward(self, x):
         embedded = self.embedding(x)
@@ -30,8 +31,8 @@ class TextCNN(nn.Module):
         output = torch.cat(conv_pooling_res, dim=3)
         output = torch.reshape(output, shape=(-1, len(self.filter_sizes) * self.num_filters))
 
-        avg_embedding = F.avg_pool2d(embedded, (sequence_length, 1)).squeeze(1)
-        output = torch.cat([output, avg_embedding], dim=1)
+        # avg_embedding = F.avg_pool2d(embedded, (sequence_length, 1)).squeeze(1)
+        # output = torch.cat([output, avg_embedding], dim=1)
 
         output = self.linear(output)
         return output
@@ -59,7 +60,7 @@ class RNN(nn.Module):
 
 
 class WordAVGModel(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, output_dim):
+    def __init__(self, vocab_size, embedding_dim, output_dim, pretrain_weight=None):
         # 初始化参数
         super().__init__()
 
@@ -67,7 +68,8 @@ class WordAVGModel(nn.Module):
         # vocab_size=词汇表长度，embedding_dim=每个单词的维度
         # padding_idx：如果提供的话，输出遇到此下标时用零填充。这里如果遇到padding的单词就用0填充。
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
-
+        if pretrain_weight is not None:
+            self.embedding.weight.data.copy_(pretrain_weight)
 
         # output_dim输出的维度，一个数就可以了，=1
         self.fc = nn.Linear(embedding_dim, output_dim)

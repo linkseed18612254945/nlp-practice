@@ -3,6 +3,10 @@ from torch import nn
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 
+def remove_str_from_sentence(text, strs):
+    for s in strs:
+        text = text.replace(s, '')
+    return text
 
 def module_clone(module, n):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(n)])

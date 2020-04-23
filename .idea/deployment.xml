@@ -21,6 +21,9 @@
           <mappings>
             <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
           </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/nlp_data" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>
