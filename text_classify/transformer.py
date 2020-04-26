@@ -4,6 +4,9 @@ import torch
 from torch.nn import functional as F
 import math
 
+
+
+
 def attention(query, key, value, dropout=None):
     weights = torch.matmul(query, torch.transpose(key, 2, 3)) / math.sqrt(query.shape[2])
     weights = F.softmax(weights, dim=-1)
@@ -14,9 +17,26 @@ def attention(query, key, value, dropout=None):
 
 
 class Transformer(nn.Module):
-    def __init__(self, d_model, output_size, num_box=3):
+    def __init__(self, input_size, d_model, output_size, num_box=3):
         super(Transformer, self).__init__()
+        self.embedding = nn.Embedding(input_size, d_model)
         self.linear = nn.Linear(d_model, output_size)
+        self.register_buffer('pe',  self.build_position_embedding(d_model))
+
+    def build_position_embedding(self, d_model, max_len=5000):
+        position_embedding = torch.zeros(max_len, d_model)
+        position = torch.range(1, max_len)
+        div_term = torch.exp(torch.arange(0, d_model, 2) *
+                             -(math.log(10000.0) / d_model))
+        position_embedding[:, 0::2] = torch.sin(position * div_term)
+        position_embedding[:, 1::2] = torch.cos(position * div_term)
+        position_embedding = position_embedding.unsqueeze(0)
+        return position_embedding
+
+    def forward(self, x):
+        x = x + self.pe[:, :x.size(1)]
+        x = self.dropout(x)
+        return self.dropout(x)
 
 
 class Encoder(nn.Module):
@@ -44,9 +64,10 @@ class MultiheadSelfAttention(nn.Module):
         query = self.Linears[0](query).reshape(query.shape[0], query.shape[1], self.num_head, self.d_k).transpose(1, 2)
         key = self.Linears[1](key).reshape(key.shape[0], key.shape[1], self.num_head, self.d_k).transpose(1, 2)
         value = self.Linears[2](value).reshape(value.shape[0], value.shape[1], self.num_head, self.d_k).transpose(1, 2)
-        weighted_value = attention(query, key, value, self.dropout)
-        weighted_value = torch.transpose(1, 2).reshape()
+        weighted_value, attn = attention(query, key, value, self.dropout)
+        weighted_value = weighted_value.transpose(1, 2).reshape(query.shape[0], query.shape[1], -1)
         return weighted_value
+
 
 class FeedForward(nn.Module):
     def __init__(self, d_model, d_ff, dropout_rate=0.1):
@@ -56,7 +77,9 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, x):
-        output = self.linear2(self.linear1(x))
+        output = self.linear2(F.relu(self.linear1(x)))
         output = self.dropout(output)
         return output
 
+if __name__ == '__main__':
+    pass

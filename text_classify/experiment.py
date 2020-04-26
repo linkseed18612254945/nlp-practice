@@ -56,7 +56,7 @@ nlp = spacy.load('en')
 #     text = utils.remove_str_from_sentence(text, remove_strs)
 #     return [token.text for token in nlp.tokenizer(text)]
 def tokenizer(text):
-    text = utils.remove_str_from_sentence(text, remove_strs)
+    # text = utils.remove_str_from_sentence(text, remove_strs)
     return text.split()
 user_stop_words = {'.', ','}
 STOP_WORDS.update(user_stop_words)
