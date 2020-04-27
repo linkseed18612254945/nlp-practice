@@ -21,8 +21,8 @@ else:
 # DATA_BASE_PATH = '../nlp_data'  # Test env data path
 DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
 # DATA_DIR = 'text_classify/aclImdb'
-# DATA_DIR = 'text_classify/car_comments'
-DATA_DIR = 'text_classify/zh_news'
+DATA_DIR = 'text_classify/car_comments'
+# DATA_DIR = 'text_classify/zh_news'
 DATA_TRAIN_FILE_NAME = 'train.csv'
 DATA_VALID_FILE_NAME = 'valid.csv'
 DATA_TEST_FILE_NAME = 'test.csv'
@@ -31,12 +31,9 @@ UNK_TOKEN = '<unk>'
 TRAIN = True
 VALID = True
 TEST = True
-VALID_DATA_SOURCE_TYPE = 2  # 0: valid file, 1: split from train data, 2: use test data, 3: split from test data
+VALID_DATA_SOURCE_TYPE = 0  # 0: valid file, 1: split from train data, 2: use test data, 3: split from test data
 VALID_RATIO = 0.2
 
-PRE_TRAIN_MODEL_BASE_PATH = '/home/ubuntu/likun/nlp_vectors'
-PRE_TRAIN_MODEL_DIR = 'glove'
-PRE_TRAIN_MODEL_NAME = 'glove.6B.200d.txt'
 
 MODEL_SAVE_BASE_PATH = '/home/ubuntu/likun/nlp-practice/text_classify'
 MODEL_NAME = 'zhnews-rnn.pt'
@@ -45,9 +42,9 @@ MODEL_NAME = 'zhnews-rnn.pt'
 EMBEDDING_SIZE = 100
 HIDDEN_SIZE = 128
 NUM_LAYERS = 2
-EPOCH_SIZE = 10
+EPOCH_SIZE = 3
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 64
+BATCH_SIZE = 16
 
 # build preprocess tokenizer
 remove_strs = ['<br />', '(', ')', '"']
@@ -62,8 +59,10 @@ user_stop_words = {'.', ','}
 STOP_WORDS.update(user_stop_words)
 stop_words = STOP_WORDS
 
-
 # Pretrain Model
+PRE_TRAIN_MODEL_BASE_PATH = '/home/ubuntu/likun/nlp_vectors'
+PRE_TRAIN_MODEL_DIR = 'glove'
+PRE_TRAIN_MODEL_NAME = 'glove.6B.200d.txt'
 USE_PRE_TRAIN_MODEL = False
 cache = '.vector_cache'
 vector_path = os.path.join(PRE_TRAIN_MODEL_BASE_PATH, PRE_TRAIN_MODEL_DIR, PRE_TRAIN_MODEL_NAME)
@@ -100,11 +99,15 @@ test_iter = data.Iterator(dataset=test_data, batch_size=BATCH_SIZE, sort=False)
 
 
 # build model
-from model import RNN, WordAVGModel, TextCNN
+from text_classify.model import RNN, WordAVGModel, TextCNN
+from text_classify.transformer import Transformer
 embedding_size = TEXT.vocab.vectors.shape[1] if USE_PRE_TRAIN_MODEL else EMBEDDING_SIZE
+
 # model = RNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS, output_size=len(LABEL.vocab))
-model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
-# model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
+# model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
+model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
+# model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab))
+
 utils.weight_init(model)
 if USE_PRE_TRAIN_MODEL:
     model.embedding.weight.data.copy_(TEXT.vocab.vectors)
@@ -114,6 +117,7 @@ optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.98)
 if TRAIN:
     for epoch in range(1, 1 + EPOCH_SIZE):
+        torch.cuda.empty_cache()
         train_loss = []
         valid_loss = []
         valid_acc = 0
