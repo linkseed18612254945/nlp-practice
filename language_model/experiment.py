@@ -29,11 +29,15 @@ BOS_TOKEN = '<bos>'
 EOS_TOKEN = '<eos>'
 UNK_TOKEN = '<unk>'
 PAD_TOKEN = '<pad>'
+NUM_EPOCH = 1
 BATCH_SIZE = 32
 BPTT_LEN = 30
 
-train = True
-valid = True
+TRAIN = True
+VALID = True
+TEST = True
+VALID_DATA_SOURCE_TYPE = 0  # 0: valid file, 1: split from train data, 2: use test data, 3: split from test data
+VALID_RATIO = 0.2
 
 # build tokenizer
 nlp = spacy.load('en')
@@ -55,8 +59,7 @@ test_iter = data.BPTTIterator(dataset=test_data, batch_size=BATCH_SIZE, bptt_len
 MODEL_SAVE_BASE_PATH = '/home/ubuntu/likun/nlp-practice/language_model'
 MODEL_NAME = "PTB-RNN-KERNEL.pt"
 MODEL_SAVE_PATH = os.path.join(MODEL_SAVE_BASE_PATH, 'save_models', MODEL_NAME)
-from model import RNN
-NUM_EPOCH = 10
+from language_model.model import RNN
 EMBEDDING_SIZE = 128
 HIDDEN_SIZE = 128
 NUM_LAYERS = 2
@@ -68,7 +71,7 @@ loss_function = nn.CrossEntropyLoss()
 optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
 
 # train model
-if train:
+if TRAIN:
     for epoch in range(1, NUM_EPOCH + 1):
         train_losses = []
         valid_losses = []
@@ -85,7 +88,7 @@ if train:
             loss.backward()
             optimizer.step()
 
-        if valid:
+        if VALID:
             model.eval()
             for batch in tqdm(valid_iter):
                 optimizer.zero_grad()
@@ -96,22 +99,22 @@ if train:
                 loss = loss_function(output, target)
                 valid_losses.append(loss.data.tolist())
         print("EPOCH: {}, TRAINING PERPLEXITY: {:.2f}, VALIDATION PERPLEXITY: {:.2f}"
-              .format(epoch, np.exp(np.mean(train_losses)), np.exp(np.mean(valid_losses)) if valid else 'NONE'))
+              .format(epoch, np.exp(np.mean(train_losses)), np.exp(np.mean(valid_losses)) if VALID else 'NONE'))
     torch.save(model.state_dict(), MODEL_SAVE_PATH)
     print("Model saved in {}".format(MODEL_SAVE_PATH))
 
 # test model
 test_perplexity = 0
-if not train:
+if TEST:
     model.load_state_dict(torch.load(MODEL_SAVE_PATH))
     model.eval()
     test_losses = []
     for batch in tqdm(test_iter):
-        text = batch.text
-        target = batch.target.view(-1)
+        text = batch.text.to(device)
+        target = batch.target.view(-1).to(device)
         output = model(text)
         loss = loss_function(output, target)
-        test_losses.append(loss)
+        test_losses.append(loss.data.tolist())
     test_perplexity = np.exp(np.mean(test_losses))
     print("TEST PERPLEXITY: {:.2f}".format(test_perplexity))
 

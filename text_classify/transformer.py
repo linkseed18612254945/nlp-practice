@@ -4,8 +4,10 @@ import torch
 from torch.nn import functional as F
 import math
 
-def attention(query, key, value, dropout=None):
+def attention(query, key, value, mask=None, dropout=None):
     weights = torch.matmul(query, key.transpose(2, 3)) / math.sqrt(query.shape[3])
+    if mask is not None:
+        weights = weights.masked_fill(mask == 0, 1e-9)
     weights = F.softmax(weights, dim=-1)
     if dropout is not None:
         weights = dropout(weights)
@@ -78,18 +80,19 @@ class MultiheadSelfAttention(nn.Module):
         self.num_head = num_head
         assert d_model % num_head == 0
         self.d_k = d_model / self.num_head
-        self.Linears = utils.module_clone(nn.Linear(d_model, d_model), 3)
+        self.linears = utils.module_clone(nn.Linear(d_model, d_model), 4)
         self.dropout = nn.Dropout(dropout_rate)
 
     def forward(self, query, key, value):
         batch_size = query.shape[0]
         seq_len = query.shape[1]
-        query = self.Linears[0](query).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
-        key = self.Linears[1](key).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
-        value = self.Linears[2](value).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
-        weighted_value, attn = attention(query, key, value, self.dropout)
+        query = self.linears[0](query).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
+        key = self.linears[1](key).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
+        value = self.linears[2](value).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
+        weighted_value, attn = attention(query, key, value, mask=False, dropout=self.dropout)
         weighted_value = weighted_value.transpose(1, 2).reshape(batch_size, seq_len, -1)
-        return weighted_value
+        output = self.linears[3](weighted_value)
+        return output
 
 
 class FeedForward(nn.Module):
