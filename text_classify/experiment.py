@@ -10,6 +10,10 @@ from tqdm import tqdm
 from spacy.symbols import ORTH
 from spacy.lang.en.stop_words import STOP_WORDS
 import utils
+import random
+
+
+utils.seed_torch(2020)
 
 USE_GPU = True
 GPU_INDEX = 0
@@ -20,8 +24,8 @@ else:
 
 # DATA_BASE_PATH = '../nlp_data'  # Test env data path
 DATA_BASE_PATH = '/home/ubuntu/likun/nlp_data'
-# DATA_DIR = 'text_classify/aclImdb'
-DATA_DIR = 'text_classify/car_comments'
+DATA_DIR = 'text_classify/aclImdb'
+# DATA_DIR = 'text_classify/car_comments'
 # DATA_DIR = 'text_classify/zh_news'
 DATA_TRAIN_FILE_NAME = 'train.csv'
 DATA_VALID_FILE_NAME = 'valid.csv'
@@ -31,7 +35,7 @@ UNK_TOKEN = '<unk>'
 TRAIN = True
 VALID = True
 TEST = True
-VALID_DATA_SOURCE_TYPE = 0  # 0: valid file, 1: split from train data, 2: use test data, 3: split from test data
+VALID_DATA_SOURCE_TYPE = 2  # 0: valid file, 1: split from train data, 2: use test data, 3: split from test data
 VALID_RATIO = 0.2
 
 
@@ -106,7 +110,7 @@ embedding_size = TEXT.vocab.vectors.shape[1] if USE_PRE_TRAIN_MODEL else EMBEDDI
 # model = RNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS, output_size=len(LABEL.vocab))
 # model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
 # model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
-model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab))
+model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab), pad=TEXT.vocab.stoi['<pad>'], use_mask=True)
 
 utils.weight_init(model)
 if USE_PRE_TRAIN_MODEL:

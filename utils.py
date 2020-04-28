@@ -1,4 +1,9 @@
 import copy
+import os
+import random
+
+import numpy as np
+import torch
 from torch import nn
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
@@ -37,3 +42,11 @@ def evaluate(y_true, y_pred):
     r = recall_score(y_true, y_pred, average='micro')
     f1 = f1_score(y_true, y_pred, average='micro')
     return acc, p, r, f1
+
+def seed_torch(seed=2018):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True

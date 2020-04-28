@@ -3,11 +3,13 @@ import utils
 import torch
 from torch.nn import functional as F
 import math
+import numpy as np
 
 def attention(query, key, value, mask=None, dropout=None):
     weights = torch.matmul(query, key.transpose(2, 3)) / math.sqrt(query.shape[3])
     if mask is not None:
-        weights = weights.masked_fill(mask == 0, 1e-9)
+        mask = mask.unsqueeze(1).unsqueeze(1)
+        weights = weights.masked_fill(mask, -np.inf)
     weights = F.softmax(weights, dim=-1)
     if dropout is not None:
         weights = dropout(weights)
@@ -16,8 +18,10 @@ def attention(query, key, value, mask=None, dropout=None):
 
 
 class Transformer(nn.Module):
-    def __init__(self, input_size, d_model, num_head, d_ff, output_size, num_box=4):
+    def __init__(self, input_size, d_model, num_head, d_ff, output_size, num_box=4, pad=1, use_mask=True):
         super(Transformer, self).__init__()
+        self.pad = pad
+        self.use_mask = use_mask
         self.embedding = nn.Embedding(input_size, d_model)
         self.register_buffer('pe',  self.build_position_embedding(d_model))
         encoder_box = EncoderBox(MultiheadSelfAttention(d_model, num_head), FeedForward(d_model, d_ff))
@@ -37,11 +41,12 @@ class Transformer(nn.Module):
         return position_embedding
 
     def forward(self, x):
+        pad_mask = (x == self.pad) if self.use_mask else None
         x = self.embedding(x)
         x = x + self.pe[:, :x.size(1)]
-        x = self.encoder(x)
+        x = self.encoder(x, pad_mask)
+        x = F.avg_pool2d(x, kernel_size=(x.shape[1], 1)).squeeze(1)
         output = self.output(x)
-        output = F.avg_pool2d(output, kernel_size=(output.shape[1], 1)).squeeze(1)
         output = self.softmax(output)
         return output
 
@@ -51,9 +56,9 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.encoder_layer = utils.module_clone(encoder_box, num_box)
 
-    def forward(self, x):
+    def forward(self, x, mask=None):
         for encoder_box in self.encoder_layer:
-            x = encoder_box(x)
+            x = encoder_box(x, mask)
         return x
 
 
@@ -65,8 +70,8 @@ class EncoderBox(nn.Module):
         self.layer_norm1 = AddAndLayerNorm(self_attn.d_model)
         self.layer_norm2 = AddAndLayerNorm(self_attn.d_model)
 
-    def forward(self, x):
-        attn_output = self.self_attn(x, x, x)
+    def forward(self, x, mask=None):
+        attn_output = self.self_attn(x, x, x, mask=mask)
         x = self.layer_norm1(x, attn_output)
         ff_output = self.feed_forward(x)
         output = self.layer_norm2(x, ff_output)
@@ -83,13 +88,13 @@ class MultiheadSelfAttention(nn.Module):
         self.linears = utils.module_clone(nn.Linear(d_model, d_model), 4)
         self.dropout = nn.Dropout(dropout_rate)
 
-    def forward(self, query, key, value):
+    def forward(self, query, key, value, mask=None):
         batch_size = query.shape[0]
         seq_len = query.shape[1]
         query = self.linears[0](query).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
         key = self.linears[1](key).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
         value = self.linears[2](value).reshape(batch_size, seq_len, self.num_head, -1).transpose(1, 2)
-        weighted_value, attn = attention(query, key, value, mask=False, dropout=self.dropout)
+        weighted_value, attn = attention(query, key, value, mask=mask, dropout=self.dropout)
         weighted_value = weighted_value.transpose(1, 2).reshape(batch_size, seq_len, -1)
         output = self.linears[3](weighted_value)
         return output
@@ -114,7 +119,7 @@ class AddAndLayerNorm(nn.Module):
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, x, output):
-        output = x + self.norm(output)
+        output = self.norm(x + output)
         return output
 
 if __name__ == '__main__':
