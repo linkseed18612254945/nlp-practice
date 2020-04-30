@@ -4,11 +4,12 @@ from torch import nn
 import utils
 import math
 import numpy as np
+from torch.nn import functional as F
 
 def attention(q, k, v, mask, dropout=None):
     score = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(q.shape[-1])
-    mask = mask.unsqueeze(1).squeeze(1)
     score = score.masked_fill(mask, -np.inf)
+    score = F.softmax(score, dim=-1)
     if dropout is not None:
         score = dropout(score)
     output = torch.matmul(score, v)
@@ -16,21 +17,21 @@ def attention(q, k, v, mask, dropout=None):
 
 
 class GPT(nn.Module):
-    def __init__(self, input_size, vocab_size, d_model, num_head, d_ff, box_num=3, pad=1):
+    def __init__(self, input_size, vocab_size, d_model, num_head, d_ff, box_num=3):
         super(GPT, self).__init__()
-        self.pad = pad
+        self.vocab_size = vocab_size
         self.embedding = nn.Embedding(input_size, d_model)
         self.encoder = Encoder(d_model, num_head, d_ff, box_num)
-        self.output = self.linear(d_model, vocab_size)
+        self.output = nn.Linear(d_model, vocab_size)
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, x):
-        padding_mask = (x == self.pad)
+        mask = (torch.tril(torch.ones(x.shape[1], x.shape[1])) == 0).to(x.device)
         x = self.embedding(x)
-        x = self.encoder(x, padding_mask)
+        x = self.encoder(x, mask)
         output = self.output(x)
         output = self.softmax(output)
-        return output
+        return output.reshape(-1, self.vocab_size)
 
 
 class Encoder(nn.Module):
@@ -40,7 +41,7 @@ class Encoder(nn.Module):
 
     def forward(self, x, mask):
         for box in self.encoder_boxes:
-            x = box.forward(x, box)
+            x = box.forward(x, mask)
         return x
 
 class EncoderBox(nn.Module):
