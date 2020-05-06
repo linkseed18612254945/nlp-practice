@@ -5,14 +5,7 @@
       <paths name="GPU">
         <serverdata>
           <mappings>
-            <mapping deploy="/likun/temp" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@49.233.191.85:22">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/root/pycharm/nlp-practice" local="$PROJECT_DIR$" />
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

@@ -67,8 +67,7 @@ HIDDEN_SIZE = 256
 NUM_LAYERS = 2
 LEARNING_RATE = 1e-3
 # model = RNN(vocab_size=len(TEXT.vocab), hidden_size=HIDDEN_SIZE, embedding_size=EMBEDDING_SIZE, num_layers=NUM_LAYERS)
-# model = CS224NRnnModel(vocab_size=len(TEXT.vocab), config=config)
-model = GPT(input_size=len(TEXT.vocab), vocab_size=len(TEXT.vocab), d_model=HIDDEN_SIZE, num_head=4, d_ff=EMBEDDING_SIZE)
+model = GPT(input_size=len(TEXT.vocab), vocab_size=len(TEXT.vocab), d_model=HIDDEN_SIZE, num_head=4, d_ff=HIDDEN_SIZE)
 model.to(device)
 utils.weight_init(model)
 loss_function = nn.CrossEntropyLoss()
