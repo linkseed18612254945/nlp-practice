@@ -51,6 +51,7 @@ train_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, 
 valid_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_VALID_FILE_NAME), text_field=TEXT)
 test_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_TEST_FILE_NAME), text_field=TEXT)
 TEXT.build_vocab(train_data)
+TEXT.numericalize()
 train_iter = data.BPTTIterator(dataset=train_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)
 valid_iter = data.BPTTIterator(dataset=valid_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)
 test_iter = data.BPTTIterator(dataset=test_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)

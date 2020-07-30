@@ -13,7 +13,7 @@ import utils
 import random
 
 
-utils.seed_torch(2020)
+# utils.seed_torch(2020)
 
 USE_GPU = True
 GPU_INDEX = 0
@@ -67,7 +67,7 @@ stop_words = STOP_WORDS
 PRE_TRAIN_MODEL_BASE_PATH = '/home/ubuntu/likun/nlp_vectors'
 PRE_TRAIN_MODEL_DIR = 'glove'
 PRE_TRAIN_MODEL_NAME = 'glove.6B.200d.txt'
-USE_PRE_TRAIN_MODEL = False
+USE_PRE_TRAIN_MODEL = True
 cache = '.vector_cache'
 vector_path = os.path.join(PRE_TRAIN_MODEL_BASE_PATH, PRE_TRAIN_MODEL_DIR, PRE_TRAIN_MODEL_NAME)
 vectors = Vectors(name=vector_path, cache=cache) if USE_PRE_TRAIN_MODEL else None
@@ -75,6 +75,7 @@ vectors = Vectors(name=vector_path, cache=cache) if USE_PRE_TRAIN_MODEL else Non
 # Build Dataset
 TEXT = data.Field(unk_token=UNK_TOKEN, tokenize=tokenizer, lower=False, stop_words=stop_words, batch_first=True)
 LABEL = data.LabelField()
+
 train_data = data.TabularDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_TRAIN_FILE_NAME),
                                  format='csv', fields=[('text', TEXT), ('label', LABEL)], skip_header=True)
 test_data = data.TabularDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_TEST_FILE_NAME),
@@ -108,9 +109,9 @@ from text_classify.transformer import Transformer
 embedding_size = TEXT.vocab.vectors.shape[1] if USE_PRE_TRAIN_MODEL else EMBEDDING_SIZE
 
 # model = RNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS, output_size=len(LABEL.vocab))
-# model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
+model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
 # model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
-model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab), pad=TEXT.vocab.stoi['<pad>'], use_mask=True)
+# model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab), pad=TEXT.vocab.stoi['<pad>'], use_mask=True)
 
 utils.weight_init(model)
 if USE_PRE_TRAIN_MODEL:
