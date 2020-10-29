@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="GPU">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@10.10.111.130:9906">
     <serverData>
-      <paths name="GPU">
+      <paths name="root@10.10.111.106:22">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/tmp/pycharm_project_797" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
       <paths name="ubuntu@10.10.111.130:9906">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_554" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@10.10.111.130:9906 (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@10.10.111.130:9906 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/pycharm_project_799" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

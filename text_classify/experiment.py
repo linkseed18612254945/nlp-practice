@@ -109,8 +109,8 @@ from text_classify.transformer import Transformer
 embedding_size = TEXT.vocab.vectors.shape[1] if USE_PRE_TRAIN_MODEL else EMBEDDING_SIZE
 
 # model = RNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, hidden_size=HIDDEN_SIZE, num_layers=NUM_LAYERS, output_size=len(LABEL.vocab))
-model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
-# model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
+# model = TextCNN(input_size=len(TEXT.vocab), embedding_size=embedding_size, output_size=len(LABEL.vocab), pooling_method='avg')
+model = WordAVGModel(vocab_size=len(TEXT.vocab), embedding_dim=embedding_size, output_dim=len(LABEL.vocab))
 # model = Transformer(input_size=len(TEXT.vocab), d_model=embedding_size, num_head=4, d_ff=HIDDEN_SIZE, output_size=len(LABEL.vocab), pad=TEXT.vocab.stoi['<pad>'], use_mask=True)
 
 utils.weight_init(model)

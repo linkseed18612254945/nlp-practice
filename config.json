@@ -1,0 +1,7 @@
+{
+  "USE_GPU": false,
+  "GPU_INDEX": 1,
+  "BERT_PRETRAIN_MODEL_PATH": "/home/ubuntu/likun/nlp_pretrained/bert-wwm-ext",
+  "HOTSEARCH_MODEL_PATH": "/home/ubuntu/likun/nlp_save_kernels/bert-google-finetune-yqzx-18category-all-5epoch-0923.pt",
+  "CLASSIFY_MODEL_PATH": "/home/ubuntu/likun/nlp_save_kernels/bert-google-finetune-yqzx-18category-all-5epoch-0923.pt"
+}

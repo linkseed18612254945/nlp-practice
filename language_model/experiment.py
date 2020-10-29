@@ -23,7 +23,8 @@ DATA_DIR = 'language_model/ptb'
 DATA_TRAIN_FILE_NAME = 'ptb.train.txt'
 DATA_VALID_FILE_NAME = 'ptb.valid.txt'
 DATA_TEST_FILE_NAME = 'ptb.test.txt'
-
+path = '/home/ubuntu/likun/nlp_data/language_model/ptb/ptb.train.txt'
+train_data_path = '/home/ubuntu/likun/nlp_data/language_model/pytorch_tutorial.txt'
 # BASE PARAMETER
 BOS_TOKEN = '<bos>'
 EOS_TOKEN = '<eos>'
@@ -51,7 +52,6 @@ train_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, 
 valid_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_VALID_FILE_NAME), text_field=TEXT)
 test_data = datasets.LanguageModelingDataset(path=os.path.join(DATA_BASE_PATH, DATA_DIR, DATA_TEST_FILE_NAME), text_field=TEXT)
 TEXT.build_vocab(train_data)
-TEXT.numericalize()
 train_iter = data.BPTTIterator(dataset=train_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)
 valid_iter = data.BPTTIterator(dataset=valid_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)
 test_iter = data.BPTTIterator(dataset=test_data, batch_size=BATCH_SIZE, bptt_len=BPTT_LEN, device=device)
@@ -67,8 +67,8 @@ EMBEDDING_SIZE = 128
 HIDDEN_SIZE = 256
 NUM_LAYERS = 2
 LEARNING_RATE = 1e-3
-# model = RNN(vocab_size=len(TEXT.vocab), hidden_size=HIDDEN_SIZE, embedding_size=EMBEDDING_SIZE, num_layers=NUM_LAYERS)
-model = GPT(input_size=len(TEXT.vocab), vocab_size=len(TEXT.vocab), d_model=HIDDEN_SIZE, num_head=4, d_ff=HIDDEN_SIZE)
+model = RNN(vocab_size=len(TEXT.vocab), hidden_size=HIDDEN_SIZE, embedding_size=EMBEDDING_SIZE, num_layers=NUM_LAYERS)
+# model = GPT(input_size=len(TEXT.vocab), vocab_size=len(TEXT.vocab), d_model=HIDDEN_SIZE, num_head=4, d_ff=HIDDEN_SIZE)
 model.to(device)
 utils.weight_init(model)
 loss_function = nn.CrossEntropyLoss()
@@ -90,9 +90,8 @@ if TRAIN:
             if CLIP_NO_LEN_DATA and text.shape[1] < BPTT_LEN:
                 continue
 
-            # hidden = [h.detach()for h in hidden] if hidden is not None else hidden
-            # output, hidden = model(text, hidden)
-            output = model(text)
+            hidden = [h.detach()for h in hidden] if hidden is not None else hidden
+            output, hidden = model(text, hidden)
 
             loss = loss_function(output, target)
             train_losses.append(loss.data.tolist())
