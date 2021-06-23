@@ -1,32 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@10.10.111.130:9906">
+  <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@10.10.111.106:9906 password">
     <serverData>
-      <paths name="root@10.10.111.106:22">
+      <paths name="ubuntu@10.10.111.106:9906 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_797" local="$PROJECT_DIR$" />
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ubuntu@10.10.111.130:9906">
+      <paths name="ubuntu@10.10.111.106:9906 password (1)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@10.10.111.106:9906 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@10.10.111.106:9906 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="ubuntu@10.10.111.106:9906 password (4)">
         <serverdata>
           <mappings>
             <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="ubuntu@10.10.111.130:9906 (1)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/ubuntu/likun/nlp-practice" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="ubuntu@10.10.111.130:9906 password">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/tmp/pycharm_project_799" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

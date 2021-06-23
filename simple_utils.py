@@ -226,6 +226,31 @@ def contain_words(content, words):
             return True
     return False
 
+def maybe_evaluate(true_labels, predict_labels, sep=';'):
+    total = len(true_labels)
+    acc_num = 0
+    for t, p in zip(true_labels, predict_labels):
+        t_set = set(t.split(sep))
+        p_set = set(p.split(sep))
+        if len(t_set & p_set) > 0:
+            acc_num += 1
+    acc = acc_num / total
+    return acc
+
+def wrong_evaluate(true_label, my_predict, other_predict, sep=';'):
+    index = 0
+
+    for t, m, o in zip(true_label, my_predict, other_predict):
+        print(t)
+        print(m)
+        print(o)
+        t_set = set(t.split(sep))
+        m_set = set(m.split(sep))
+        o_set = set(o.split(sep))
+        if len(t_set & m_set) == 0 and len(t_set & o_set) > 0:
+            print(index, t, m, o)
+        index += 1
+
 def filter_words_by_pos(tokens, pos, use_pos=('v',)):
     if isinstance(tokens, str):
         tokens = tokens.split()

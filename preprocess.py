@@ -1,7 +1,7 @@
 import jieba
 import jieba.posseg as pseg
 import re
-import utils
+import simple_utils
 
 class TokenizeProcessor:
     """
@@ -10,7 +10,7 @@ class TokenizeProcessor:
     def __init__(self):
         self.tokenizer, self.search_tokenizer, self.tag_tokenizer = self.__make_tokenizer("jieba")
         
-        self.stopwordset = utils.read_words_from_file("resource/stopwords.txt")
+        self.stopwordset = simple_utils.read_words_from_file("resource/stopwords.txt")
         self.stopwordlist = sorted(self.stopwordset, key=lambda x: len(x), reverse=True)
         self.reply_pattern = re.compile(r"回复\S*:")
         self.forward_pattern = re.compile(r"@\S*:")
